@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Temp Mail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    background:#0f172a;
+    color:#fff;
+    font-family:Arial;
+    text-align:center;
+    padding:20px;
+}
+.box{
+    max-width:400px;
+    margin:auto;
+    background:#020617;
+    padding:20px;
+    border-radius:10px;
+}
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#38bdf8;
+    color:#000;
+    font-weight:bold;
+}
+.mail{
+    background:#020617;
+    padding:10px;
+    margin:10px 0;
+    border-radius:6px;
+    word-break:break-all;
+}
+.msg{
+    background:#020617;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+    text-align:left;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>📧 Temp Mail</h2>
+
+<div class="mail" id="email"></div>
+
+<button onclick="newMail()">🔄 Change Email</button>
+
+<h3>📥 Inbox</h3>
+<div id="inbox">Waiting for messages...</div>
+</div>
+
+<script>
+let login, domain;
+
+function newMail(){
+    login = Math.random().toString(36).substring(2,10);
+    domain = "1secmail.com";
+    document.getElementById("email").innerText = login+"@"+domain;
+    document.getElementById("inbox").innerHTML = "Waiting for messages...";
+}
+
+async function loadInbox(){
+    let res = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`);
+    let data = await res.json();
+
+    if(data.length === 0){
+        document.getElementById("inbox").innerHTML = "No messages yet...";
+        return;
+    }
+
+    let html = "";
+    for(let mail of data){
+        html += `<div class="msg">
+        <b>From:</b> ${mail.from}<br>
+        <b>Subject:</b> ${mail.subject}<br>
+        <button onclick="readMail(${mail.id})">Read</button>
+        </div>`;
+    }
+    document.getElementById("inbox").innerHTML = html;
+}
+
+async function readMail(id){
+    let res = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${id}`);
+    let mail = await res.json();
+    alert(mail.textBody || mail.htmlBody);
+}
+
+newMail();
+setInterval(loadInbox, 5000);
+</script>
+
+</body>
+  </html>
